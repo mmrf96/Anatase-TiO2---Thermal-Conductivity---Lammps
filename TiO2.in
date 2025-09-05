@@ -1,0 +1,116 @@
+# LAMMPS input script for thermal conductivity Green-Kubo method for TiO2 Anatase Nanotube
+
+echo		both
+units		metal
+atom_style	full
+boundary    p p p 
+
+read_data	50_10_Full.data
+velocity	all create 300 219387 mom yes rot yes dist uniform
+
+pair_style buck/coul/long 8 8 ##or 12
+pair_coeff 2 2   31120.53 0.154 5.249
+pair_coeff 1 2   16957.71 0.194 12.587
+pair_coeff 1 1   11782.88 0.234 30.214
+
+kspace_style ewald 1.0e-2  #long-range solver (or pppm )
+pair_modify 	shift yes
+neigh_modify    delay 0 every 1 check yes
+
+min_style	cg
+minimize 	1.0e-6 1.0e-8 1000 10000
+
+region 	fl block  INF INF INF INF INF 5  units box
+region          hot block INF INF INF INF 5 10   units box
+
+region          1 block   INF INF INF INF 10 12.5    units box
+region          2 block   INF INF INF INF 12.5 15    units box
+region          3 block   INF INF INF INF 15 17.5   units box
+region          4 block   INF INF INF INF 17.5 20  units box
+region          5 block   INF INF INF INF 20 22.5  units box
+region          6 block   INF INF INF INF 22.5 25   units box
+region          7 block   INF INF INF INF 25 27.5  units box
+region          8 block   INF INF INF INF 27.5 30  units box
+region          9 block   INF INF INF INF 30 32.5  units box
+region          10 block  INF INF INF INF 32.5 35  units box
+
+region          cold block INF INF INF INF 35 40 units box
+region          fr block   INF INF INF INF 40 INF units box
+
+group 		fl   region fl
+group 	      	fr   region fr
+group           hot  region hot
+group           cold region cold
+group           middle subtract all hot cold fl fr
+
+group           1 region 1
+group           2 region 2
+group           3 region 3
+group           4 region 4
+group           5 region 5
+group           6 region 6
+group           7 region 7
+group           8 region 8
+group           9 region 9
+group           10 region 10
+
+fix             npt all npt temp 300 300 0.1 iso 0 0 1 drag 0.5
+thermo          1000 #1000
+thermo_style    custom step temp pe ke etotal 
+dump            1 all atom 1000 dump.lammpstrj
+timestep		0.001
+run             1000000 #20000
+######################################################
+unfix           npt
+
+fix		3 fl setforce 0 0 0 
+fix		4 fr setforce 0 0 0 
+velocity	fl set 0 0 0 units  box
+velocity	fr set 0 0 0 units  box
+
+fix	    5 hot  nvt temp 320 320 0.01
+fix	    6 cold nvt temp 280 280 0.01
+fix         7 middle nve 
+fix         8 fl nve
+fix         9 fr nve
+
+run             1000000
+######################################################
+reset_timestep  0
+
+compute		Thot hot temp
+compute 		T1 1 temp
+compute 		T2 2 temp
+compute 		T3 3 temp
+compute 		T4 4 temp
+compute 		T5 5 temp
+compute 		T6 6 temp
+compute 		T7 7 temp
+compute 		T8 8 temp
+compute 		T9 9 temp
+compute 		T10 10 temp
+compute 		Tcold cold temp
+
+compute      	myStress middle stress/atom NULL virial
+compute     	myKE middle ke/atom
+compute     	myPE middle pe/atom
+
+compute         flux  middle heat/flux  myKE myPE myStress
+
+variable        r equal 9.76
+variable        t equal 3.77
+variable        midvol equal 2*3.14*${r}*${t}*25
+
+variable        Jz equal c_flux[3]/${midvol}
+
+fix             10 all ave/time 10 10000 100000 v_Jz f_5 f_6 c_T1 c_T2 c_T3 c_T4 c_T5 c_T6 c_T7 c_T8 c_T9 c_T10 file Temp.txt
+
+run             1000000
+
+
+
+
+
+
+
+
