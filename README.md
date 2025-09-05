@@ -9,8 +9,6 @@ Contents:
 - TiO2.in          : LAMMPS NEMD input script (with Buckingham coefficients inline)
 - 50_10_Full.data  : Example nanotube structure file in LAMMPS format
 - nanotube builder/         : MATLAB nanotube builder scripts
-- dump_sample.xyz  : (optional) sample trajectory
-- log.lammps       : (optional) sample run log
 
 How to use:
 1. Use the MATLAB nanotube builder scripts (in nannotube builder/) to generate a nanotube
