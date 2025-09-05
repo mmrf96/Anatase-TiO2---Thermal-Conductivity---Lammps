@@ -23,6 +23,13 @@ How to use:
 5. Outputs will include a trajectory (dump file) and a log file with simulation
    details and conductivity results.
 
+6. - Thermal conductivity is calculated using Fourier’s law:
+      κ = - J / (dT/dz)
+  where J is the heat flux and dT/dz is the steady-state temperature gradient.
+- In practice, temperature profiles from LAMMPS are fitted (e.g., in Excel or MATLAB),
+  and combined with the heat flux to compute κ. An example calculation spreadsheet
+  is provided separately in Excel.
+
 Notes:
 - The provided 50_10_Full.data and TiO2.in reproduce the setup used in the paper.
 - Buckingham potential coefficients are specified directly in TiO2.in.
